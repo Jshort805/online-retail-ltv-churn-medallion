@@ -2,6 +2,7 @@
 Ingests UK online retail transactions (2009–2011), cleans them through bronze, silver, and gold layers in DuckDB, and models customer lifetime value and churn risk in Jupyter notebooks. Customer segments feed campaign recommendations. 
 
 Data source: UCI Machine Learning Repository, Online Retail II.
+Dataset link: https://archive.ics.uci.edu/dataset/502/online+retail+ii
 
 ```online-retail-ltv-churn-medallion/
   data/raw/          # downloaded file lands here
