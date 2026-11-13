@@ -4,14 +4,42 @@ Ingests UK online retail transactions (2009–2011), cleans them through bronze,
 Data source: UCI Machine Learning Repository, Online Retail II.
 Dataset link: https://archive.ics.uci.edu/dataset/502/online+retail+ii
 
-```online-retail-ltv-churn-medallion/
-  data/raw/          # downloaded file lands here
-  data/ltv.duckdb    # bronze/silver/gold tables
-  notebooks/
-    01_ingest_bronze.ipynb
-    02_silver_clean.ipynb
-    03_gold_rfm_cohorts.ipynb
-    04_ltv_churn_model.ipynb
-    05_segments_recs.ipynb
-  requirements.txt
-  README.md```
+## Setup
+
+**Requirements:** Python 3.10 or newer and an internet connection (the first run downloads the dataset, about 45 MB).
+
+1. **Clone the repo and open it in VS Code or Jupyter**
+   ```
+   git clone https://github.com/Jshort805/online-retail-ltv-churn-medallion.git
+   cd online-retail-ltv-churn-medallion
+   ```
+
+2. **(Recommended) Create a virtual environment**
+   ```
+   python -m venv .venv
+   source .venv/bin/activate        #Mac/Linux
+   .venv\Scripts\activate           #Windows
+   ```
+
+3. **Install the packages**
+   ```
+   pip install -r requirements.txt
+   ```
+
+4. **Pick the Python kernel** you just installed into (in VS Code, click "Select Kernel" at the top right of a notebook).
+
+## How to run
+
+Run the notebooks **in order**, using Run All in each one. Each notebook reads what the previous one saved.
+
+| Notebook | What it does | Saves |
+|---|---|---|
+| `01_ingest_bronze` | Downloads the UCI dataset and loads it into DuckDB | `bronze` table |
+| `02_silver_clean` | Cleans the data and flags cancellations, returns, and missing customer IDs. It asks "yes/no" before saving, so type `yes` | `silver` table |
+| `03_gold_rfm_cohorts` | Builds one row per customer (recency, frequency, spend) and explores the data | `data/exports/gold_customers.csv` |
+| `04_ltv_churn_model` | Predicts customer lifetime value and churn risk, and tests the predictions on held-out data | `data/exports/customer_scores.csv` |
+| `05_segments_recs` | Builds customer segments and campaign recommendations | |
+
+**Troubleshooting**
+- **DuckDB "database is locked" error:** only one notebook can use `data/ltv.duckdb` at a time. Close the other notebooks, or restart the kernel, and run again.
+-
