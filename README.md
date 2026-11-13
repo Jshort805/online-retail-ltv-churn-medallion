@@ -38,8 +38,8 @@ Run the notebooks **in order**, using Run All in each one. Each notebook reads w
 | `02_silver_clean` | Cleans the data and flags cancellations, returns, and missing customer IDs. It asks "yes/no" before saving, so type `yes` | `silver` table |
 | `03_gold_rfm_cohorts` | Builds one row per customer (recency, frequency, spend) and explores the data | `data/exports/gold_customers.csv` |
 | `04_ltv_churn_model` | Predicts customer lifetime value and churn risk, and tests the predictions on held-out data | `data/exports/customer_scores.csv` |
-| `05_segments_recs` | Builds customer segments and campaign recommendations | |
+| `05_segments_recs` | Builds customer segments and campaign recommendations | `data/exports/customer_segments.csv`, `data/exports/segment_recommendations.csv` |
 
 **Troubleshooting**
 - **DuckDB "database is locked" error:** only one notebook can use `data/ltv.duckdb` at a time. Close the other notebooks, or restart the kernel, and run again.
--
+-**Notebook 02 seems stuck:** it stops and waits for you to type `yes` or `no` before saving. Type `yes` in the box at the top of the window and press Enter.
