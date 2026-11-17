@@ -6,3 +6,5 @@ seaborn
 lifetimes
 scikit-learn
 jinja2
+ipykernel
+notebook

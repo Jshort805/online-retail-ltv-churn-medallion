@@ -115,6 +115,12 @@ The project answers five questions a marketing team would ask about its customer
 3. At the top right of the notebook, click **Select Kernel → Python Environments** and pick the one that says `.venv`. If you skipped the virtual environment, pick the Python you ran `pip install` with.
 4. Click **Run All** at the top of the notebook. Repeat steps 2 to 4 for each notebook below, checking that the kernel at the top right still says `.venv`.
 
+**Open the notebooks in Jupyter (browser)**
+1. In a terminal, go to the project folder and activate the virtual environment (Setup step 2).
+2. Run `jupyter notebook` command in terminal. Your browser will open.
+3. Open the `notebooks` folder, click `01_ingest_bronze.ipynb`, and choose **Run → Run All Cells**.
+4. Repeat for each notebook below, in order.
+
 Run the notebooks **in order**, using Run All in each one. Each notebook reads what the previous one saved.
 
 | Notebook | What it does | Saves |
