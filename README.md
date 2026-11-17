@@ -1,5 +1,7 @@
-# Final project for MSBA 510 (Python for Business Analytics) at CSUCI (Working Draft)
-Ingests UK online retail transactions (2009–2011), cleans them through bronze, silver, and gold layers in DuckDB, and models customer lifetime value and churn risk in Jupyter notebooks. Customer segments feed campaign recommendations. 
+# Customer Segmentation and Campaign Recommendations from LTV and Churn Models
+Predicts which customers are worth the most and which are likely to leave, then groups them into five segments with a recommended campaign for each. Built on 1M+ real UK online retail transactions (2009 to 2011), cleaned through bronze, silver and gold layers in DuckDB and modeled in Jupyter notebooks.
+
+*Built as the final project for MSBA 510 (Python for Business Analytics) at CSUCI.*
 
 Data source: UCI Machine Learning Repository, Online Retail II.
 Dataset link: https://archive.ics.uci.edu/dataset/502/online+retail+ii
