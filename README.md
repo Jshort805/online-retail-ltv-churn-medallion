@@ -109,6 +109,12 @@ The project answers five questions a marketing team would ask about its customer
 
 ## How to run
 
+**Open the project in VS Code**
+1. Choose **File → Open Folder** and select the project folder (`online-retail-ltv-churn-medallion`). Choose "Yes, I trust the authors" if asked.
+2. In the sidebar, open the `notebooks` folder and click `01_ingest_bronze.ipynb`.
+3. At the top right of the notebook, click **Select Kernel → Python Environments** and pick the one that says `.venv`. If you skipped the virtual environment, pick the Python you ran `pip install` with.
+4. Click **Run All** at the top of the notebook. Repeat steps 2 to 4 for each notebook below, checking that the kernel at the top right still says `.venv`.
+
 Run the notebooks **in order**, using Run All in each one. Each notebook reads what the previous one saved.
 
 | Notebook | What it does | Saves |
