@@ -51,7 +51,7 @@ All outputs are saved to `data/exports/`.
 | `frequency` | Number of *repeat* purchase days (the first purchase is not counted, so this differs from the gold table) |
 | `recency` | Days between the first and last purchase |
 | `T` | Days between the first purchase and the end of the data |
-| `monetary_value` | Average value of repeat orders, capped at the 95th percentile |
+| `monetary_value` | Average value of repeat orders, capped at the 95th percentile. Not the same as `monetary` in the gold table, which is total spend. |
 | `p_alive` | Probability the customer is still active |
 | `churn_risk` | 1 minus `p_alive`. Only meaningful for repeat buyers. |
 | `pred_purchases_12m` | Expected purchases in the next 12 months |
@@ -59,7 +59,7 @@ All outputs are saved to `data/exports/`.
 | `ltv_12m` | Predicted 12-month revenue from the customer |
 | `ltv_decile` | 1 to 10, where 10 is the top 10% by predicted LTV |
 
-**`customer_segments.csv`** (notebook 05): `customer_scores.csv` plus a `segment` column.
+**`customer_segments.csv`** (notebook 05): `customer_scores.csv` plus `monetary` (total past spend) and `tenure_days` from the gold table, and a `segment` column.
 
 **`segment_recommendations.csv`** (notebook 05): one row per segment with the recommended campaign, spend level, customer count, and estimated extra revenue.
 
@@ -123,7 +123,7 @@ The project answers five questions a marketing team would ask about its customer
 3. Open the `notebooks` folder, click `01_ingest_bronze.ipynb`, and choose **Run → Run All Cells**.
 4. Repeat for each notebook below, in order.
 
-Run the notebooks **in order**, using Run All in each one. Each notebook reads what the previous one saved.
+Run the notebooks **in order**, using Run All in each one. Each notebook reads what the previous one saved. Notebook 05 reads the files from both notebook 03 and notebook 04.
 
 | Notebook | What it does | Saves |
 |---|---|---|
@@ -131,7 +131,7 @@ Run the notebooks **in order**, using Run All in each one. Each notebook reads w
 | `02_silver_clean` | Cleans the data and flags cancellations, returns, and missing customer IDs. It asks "yes/no" before saving, so type `yes` | `silver` table |
 | `03_gold_rfm_cohorts` | Builds one row per customer (recency, frequency, spend) and explores the data | `data/exports/gold_customers.csv` |
 | `04_ltv_churn_model` | Predicts customer lifetime value and churn risk, and tests the predictions on held-out data | `data/exports/customer_scores.csv` |
-| `05_segments_recs` | Builds customer segments and campaign recommendations | `data/exports/customer_segments.csv`, `data/exports/segment_recommendations.csv` |
+| `05_segments_recs` | Combines churn risk and past spend into customer segments, and recommends a campaign for each | `data/exports/customer_segments.csv`, `data/exports/segment_recommendations.csv` |
 
 **Troubleshooting**
 - **DuckDB "database is locked" error:** only one notebook can use `data/ltv.duckdb` at a time. Close the other notebooks, or restart the kernel, and run again.
@@ -170,7 +170,8 @@ The project follows a **medallion** layout: each layer is a cleaner version of t
 - **Lifetime value.** Predicted 12-month LTV = expected purchases in 12 months x expected order value.
 - **Honest testing.** The model is fit only on purchases before June 9, 2011, then checked against what customers actually did in the following 183 days. The split is by date, not random, so the model never sees the future. It is also compared against a simple baseline.
 - **Churn comparison.** A customer churned if they bought before June 9, 2011 and bought nothing in the test window. A logistic regression is compared with BG/NBD on repeat buyers, using AUC.
-- **Segments (notebook 05).** Repeat buyers are split on value (predicted LTV at or above the repeat-buyer median, $797) and risk (churn risk of 0.25 or more). One-time buyers are their own segment.
+- **Segments (notebook 05).** Repeat buyers are split on value (total past spend at or above the repeat-buyer median, $1,420) and risk (churn risk of 0.25 or more). One-time buyers are their own segment. Value uses past spend, not predicted LTV, because predicted LTV and churn risk both come from the same BG/NBD estimate of whether a customer is still active. Using both would count churn twice and label likely-lost customers as low value, even big past spenders.
+- **Campaign sizing (notebook 05).** For four segments, extra revenue = predicted 12-month revenue x an assumed lift. For At-risk high value, whose predicted LTV is near zero because the model thinks they have left, extra revenue = yearly past spend x an assumed 10% win-back rate.
 
 ## Key findings
 
@@ -192,19 +193,22 @@ All numbers come from running the notebooks on the full dataset (1,067,371 rows,
 
 | Segment | Customers | Share of predicted revenue | Recommended campaign |
 |---|---|---|---|
-| Champions (high value, low risk) | 2,063 | 82% | Loyalty perks and early access. No discounts. |
-| At-risk high value | 32 | 1% | Personal win-back offer and outreach |
-| Loyal low-value | 1,431 | 8% | Cross-sell and bundles to raise order size |
-| Fading low-value | 663 | 2% | Automated reactivation email only |
+| Champions (high past spend, low risk) | 1,912 | 78% | Loyalty perks and early access. No discounts. |
+| At-risk high value | 183 | 1% | Account-manager calls to the largest past spenders, win-back email for the rest |
+| Loyal low-value | 1,582 | 13% | Cross-sell and bundles to raise order size |
+| Fading low-value | 512 | 1% | Automated reactivation email only |
 | One-time buyers | 1,689 | 7% | Second-purchase offer soon after the first order |
 
-Under the assumed campaign lift rates in notebook 05, these campaigns could add about $475,000 in 12-month revenue. The lift rates are assumptions, not measured results. Real numbers would need A/B tests.
+The 183 at-risk high value customers have spent $932,731 in total, but the model predicts only $108,011 more from them because it thinks they have left. That gap is why value is measured by past spend. An earlier version ranked value by predicted LTV, which counted churn risk twice and left only 32 customers in this segment.
+
+Under the assumed campaign rates in notebook 05, these campaigns could add about $531,000 in 12-month revenue: about $479,000 from four segments (predicted revenue x assumed lift) plus about $52,000 from win-back (past spend x an assumed 10% rate). The rates are assumptions, not measured results. Real numbers would need A/B tests.
 
 ## Limitations
 
 - **LTV is revenue, not profit.** The dataset has no cost or margin data.
-- **Currency.** The source data is from a UK retailer, so prices are in British pounds. The notebooks format amounts with a `$` sign.
-- **Campaign lift rates are assumptions.** The extra-revenue estimates in notebook 05 need A/B tests to confirm.
+- **Currency.** The source data is from a UK retailer, so prices are in British pounds. All amounts in the notebooks and this README are shown with a `$` sign for readability.
+- **Campaign lift and win-back rates are assumptions.** The extra-revenue estimates in notebook 05 need A/B tests to confirm. The win-back estimate also assumes we can recover some of what at-risk customers used to spend; some may be gone for good.
+- **Past spend favors long-time customers.** Segment value uses total past spend, which says nothing about recent activity. Churn risk covers that part.
 - **The largest buyers are understated.** Capping order values at the 95th percentile keeps the model stable but lowers predicted LTV for wholesale customers.
 - **One-time buyers can't be scored for churn.** BG/NBD has no evidence about them yet, so they are handled as a separate segment.
 - **Customers without an ID are excluded.** About 23% of invoice lines have no customer ID and can't be used for customer-level analysis.
